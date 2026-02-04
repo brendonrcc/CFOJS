@@ -1,4 +1,4 @@
-    const { useState, useEffect, useMemo, useCallback, useRef } = React;
+  const { useState, useEffect, useMemo, useCallback, useRef } = React;
       const { createRoot } = ReactDOM;
       
       const kebabToPascal = (str) => 
@@ -157,7 +157,12 @@
       const fetchClassContent = async (gid) => {
         try {
           const rows = await fetchCSV(gid);
-          return rows.map(row => ({ tag: row[0]?.toLowerCase().trim() || '', content: row[1] || '' })).filter(r => r.tag !== '');
+          // row[0] = TAG, row[1] = Content (B), row[2] = Extra (C)
+          return rows.map(row => ({ 
+              tag: row[0]?.toLowerCase().trim() || '', 
+              content: row[1] || '', 
+              extra: row[2] || '' 
+          })).filter(r => r.tag !== '');
         } catch (error) {
           console.error("Content Fetch Error:", error);
           throw error;
@@ -180,7 +185,6 @@
 
       const sendPrivateMessage = async (username, subject, message) => {
         try {
-            // 1. Acessa a página de composição para pegar o formulário e tokens necessários
             const composeResp = await fetch('/privmsg?mode=post', {
                 credentials: 'same-origin',
                 headers: { 'Cache-Control': 'no-store, no-cache' }
@@ -189,15 +193,12 @@
 
             const html = await composeResp.text();
             const dom = new DOMParser().parseFromString(html, 'text/html');
-            // Procura o formulário que contém o campo de mensagem
             const form = dom.querySelector('form textarea[name="message"]')?.closest('form');
             if (!form) return false;
 
-            // 2. Prepara os dados do formulário
             const formData = new FormData();
             let hasUsernameArrayField = false;
 
-            // Copia os campos ocultos e tokens do formulário original
             form.querySelectorAll('input, textarea, select').forEach(el => {
                 const name = el.getAttribute('name');
                 if (!name || name === 'message' || name === 'subject') return;
@@ -206,17 +207,14 @@
                 formData.append(name, el.value || '');
             });
 
-            // Define destinatário, assunto e mensagem
             if (hasUsernameArrayField) formData.set('username[]', username);
             else formData.set('username', username);
 
             formData.set('subject', subject);
             formData.set('message', message);
             
-            // Garante que o campo de envio (submit) esteja presente
             if (!formData.has('post')) formData.set('post', '1');
 
-            // 3. Realiza o envio
             const action = form.getAttribute('action') || '/privmsg';
             const sendResp = await fetch(action, {
                 method: 'POST',
@@ -226,7 +224,6 @@
 
             if (!sendResp.ok) return false;
             
-            // 4. Verifica se houve erro na resposta (usuário inexistente ou flood)
             const textLower = (await sendResp.text()).toLowerCase();
             if (textLower.includes('não existe') || textLower.includes('flood')) return false;
 
@@ -251,14 +248,14 @@
             const currentId = generateId();
             if (tag === 's1') {
               i++; const children = parseLevel(['s2'], currentId);
-              currentBlocks.push({ id: currentId, parentId: parentId, type: 'group', tag: 's1', content: row.content, children, level: 1 });
+              currentBlocks.push({ id: currentId, parentId: parentId, type: 'group', tag: 's1', content: row.content, extra: row.extra, children, level: 1 });
               i++; 
             } else if (tag === 's3') {
               i++; const children = parseLevel(['s4'], currentId);
-              currentBlocks.push({ id: currentId, parentId: parentId, type: 'group', tag: 's3', content: row.content, children, level: 2 });
+              currentBlocks.push({ id: currentId, parentId: parentId, type: 'group', tag: 's3', content: row.content, extra: row.extra, children, level: 2 });
               i++; 
             } else if (tag === 's2' || tag === 's4') return currentBlocks;
-            else { currentBlocks.push({ id: currentId, parentId: parentId, type: 'leaf', tag: tag, content: row.content }); i++; }
+            else { currentBlocks.push({ id: currentId, parentId: parentId, type: 'leaf', tag: tag, content: row.content, extra: row.extra }); i++; }
           }
           return currentBlocks;
         };
@@ -583,9 +580,10 @@
             if (!nickname.trim()) return; 
             setSendState('sending'); 
             
-            // Remove simple HTML tags that might be in the block content from the spreadsheet before sending
-            const rawMessage = block.content ? block.content.replace(/<[^>]*>?/gm, '') : '';
-            const subject = "Mensagem do Instrutor";
+            // Subject from Column B (block.content)
+            const subject = block.content || "Mensagem do Instrutor";
+            // Message Body from Column C (block.extra)
+            const rawMessage = block.extra || "";
 
             const success = await sendPrivateMessage(nickname, subject, rawMessage);
 
