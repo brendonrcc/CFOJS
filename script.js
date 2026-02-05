@@ -1,4 +1,4 @@
-     const { useState, useEffect, useMemo, useCallback, useRef } = React;
+    const { useState, useEffect, useMemo, useCallback, useRef } = React;
       const { createRoot } = ReactDOM;
       
       const kebabToPascal = (str) => 
@@ -104,13 +104,14 @@
       const MANUAL_PROF_GID = "2125629446";
       const SLIDESHOW_GID = "661060277";
       const NOTICES_GID = "1523373356";
+      const INIT_PROC_GID = "182309842";
       const LOGO_URL = "https://i.imgur.com/ScdmxL5.png";
 
       const CLASSES = [
-        { id: 'admin', name: 'Administração e Tecnologia do Fórum', gid: '0', description: 'Script da matéria Administração e Tecnologia do Fórum.', icon: 'https://i.imgur.com/x8lj35t.png' },
-        { id: 'mil_sci', name: 'Ciências Militares', gid: '971998757', description: 'Script da matéria Ciências Militares', icon: 'https://i.imgur.com/oO2aF2k.png' },
-        { id: 'mil_career', name: 'Carreira Militar', gid: '303472444', description: 'Script da matéria Carreira Militar', icon: 'https://i.imgur.com/Na76QYn.png' },
-        { id: 'practice', name: 'Práticas Militares e Legislação', gid: '1700831677', description: 'Script da matéria Práticas Militares e Legislação', icon: 'https://i.imgur.com/lR1RzIE.png' },
+        { id: 'admin', name: 'Administração e Tecnologia do Fórum', gid: '0', description: 'Gestão administrativa e protocolos.', icon: 'https://i.imgur.com/x8lj35t.png' },
+        { id: 'mil_sci', name: 'Ciências Militares', gid: '971998757', description: 'Táticas, estratégias e estudos de campo.', icon: 'https://i.imgur.com/oO2aF2k.png' },
+        { id: 'mil_career', name: 'Carreira Militar', gid: '303472444', description: 'Guia de progressão e hierarquia.', icon: 'https://i.imgur.com/Na76QYn.png' },
+        { id: 'practice', name: 'Práticas Militares e Legislação', gid: '1700831677', description: 'Treinamentos práticos e simulações.', icon: 'https://i.imgur.com/lR1RzIE.png' },
       ];
 
       const CLASS_TYPES_FEEDBACK = [
@@ -250,7 +251,6 @@
       };
 
       const sendPrivateMessage = async (username, subject, message) => {
-        // ... (implementation same as previous)
         try {
             const composeResp = await fetch('/privmsg?mode=post', {
                 credentials: 'same-origin',
@@ -262,7 +262,10 @@
             const dom = new DOMParser().parseFromString(html, 'text/html');
             
             const form = dom.querySelector('form[action*="/privmsg"]');
-            if (!form) return false;
+            if (!form) {
+                console.error("Formulário de MP não encontrado.");
+                return false;
+            }
 
             const formData = new FormData();
             let hasUsernameArrayField = false;
@@ -292,11 +295,18 @@
                 credentials: 'same-origin'
             });
 
-            if (!sendResp.ok) return false;
+            if (!sendResp.ok) {
+                 console.error(`Erro no envio da MP: ${sendResp.status}`);
+                 return false;
+            }
             
             const textLower = (await sendResp.text()).toLowerCase();
-            if (textLower.includes('não existe') || textLower.includes('flood')) return false;
+            if (textLower.includes('não existe') || textLower.includes('flood')) {
+                console.error("Erro de Flood ou Usuário inexistente.");
+                return false;
+            }
 
+            console.log(`MP enviada para: ${username}`);
             return true;
         } catch (error) {
             console.error("Exceção ao enviar MP:", error);
@@ -305,7 +315,6 @@
       };
 
       const postToForumTopic = async (topicId, message) => {
-        // ... (implementation same as previous)
         try {
             const outputUrl = `/post?t=${topicId}&mode=reply`;
             const loadResp = await fetch(outputUrl, {
@@ -360,7 +369,6 @@
       };
 
       const postToSheet = async (dataPayload) => {
-          // ... (implementation same as previous)
           try {
               const body = {
                   action: "append_row",
@@ -384,7 +392,7 @@
           }
       };
 
-      // --- LOGIC HELPERS --- (Same as previous)
+      // --- LOGIC HELPERS ---
       const generateId = () => Math.random().toString(36).substr(2, 9);
       const parseRowsToBlocks = (rows) => {
         let i = 0;
@@ -428,8 +436,19 @@
         let text = str.replace(/<br\s*\/?>/gi, ' ');
         return text.replace(/<[^>]+>/g, '');
       };
+      
+      const convertBBCodeToHtml = (text) => {
+        if (!text) return '';
+        return text
+            .replace(/\[b\]/gi, '<b>').replace(/\[\/b\]/gi, '</b>')
+            .replace(/\[i\]/gi, '<i>').replace(/\[\/i\]/gi, '</i>')
+            .replace(/\[u\]/gi, '<u>').replace(/\[\/u\]/gi, '</u>')
+            .replace(/\[color=([^\]]+)\]/gi, '<color=$1>').replace(/\[\/color\]/gi, '</color>')
+            .replace(/\[url=([^\]]+)\]/gi, '<a href="$1">').replace(/\[\/url\]/gi, '</a>')
+            .replace(/\[br\]/gi, '<br>');
+      };
 
-      // --- RICH TEXT RENDERER --- (Same as previous)
+      // --- RICH TEXT RENDERER ---
       const RichText = ({ text, className }) => {
         if (!text) return null;
 
@@ -482,7 +501,6 @@
       );
       
       const Slideshow = () => {
-        // ... (Same as previous)
         const [current, setCurrent] = useState(0);
         const [slidesData, setSlidesData] = useState([]);
         const [loading, setLoading] = useState(true);
@@ -540,7 +558,6 @@
       };
 
       const NoticeBoard = () => {
-          // ... (Same as previous)
           const [data, setData] = useState({ title: 'Carregando...', message: '...' });
           
           useEffect(() => {
@@ -727,7 +744,6 @@
       };
 
       const PrivateMessage = ({ block, status, onInteract }) => {
-        // ... (Same as previous)
         const [isOpen, setIsOpen] = useState(false); 
         const [nickname, setNickname] = useState(''); 
         const [sendState, setSendState] = useState('idle');
@@ -783,7 +799,7 @@
         return (
             <div className="my-6 animate-fade-in bg-white dark:bg-[#0c120e] border border-brand/30 rounded-sm shadow-lg overflow-hidden relative">
                 <div className="bg-brand/10 px-4 py-2 flex items-center justify-between border-b border-brand/10">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-brand font-condensed flex items-center gap-2"><Lock size={10} /> Mensagem Privada</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-brand font-condensed flex items-center gap-2"><Lock size={10} /> Canal Seguro</span>
                     <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-red-500 transition-colors"><X size={14} /></button>
                 </div>
                 <div className="p-4 flex gap-2">
@@ -798,7 +814,6 @@
       };
 
       const Spoiler = ({ block, childrenNodes }) => {
-        // ... (Same as previous)
         const [isOpen, setIsOpen] = useState(false);
         const isOuter = block.level === 1;
         const title = block.content && block.content.trim() !== '' ? block.content : (isOuter ? 'Conteúdo Classificado' : 'Informação Adicional');
@@ -828,7 +843,6 @@
       };
 
       const ContentRenderer = ({ blocks, onSkipWarning, currentUser, textZoom = 0 }) => {
-        // ... (Same as previous - massive block)
         const processedBlocks = useMemo(() => {
             const groupNodes = (nodes) => {
                 if (!nodes) return [];
@@ -892,7 +906,8 @@
 
         const processText = (text) => {
              if (!text || typeof text !== 'string') return text;
-             return text.replace(/{USERNAME}/g, currentUser?.nickname || 'Aluno');
+             let processed = text.replace(/{USERNAME}/g, currentUser?.nickname || 'Aluno');
+             return convertBBCodeToHtml(processed);
         };
 
         const renderBlock = (block) => { 
@@ -949,6 +964,17 @@
                             <div>
                                 <h4 className="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400 mb-1 font-condensed">Ponto de Atenção</h4>
                                 <div className={`${zoomClass} font-bold text-red-900 dark:text-red-200 leading-relaxed font-poppins`}>
+                                    <RichText text={processedContent} />
+                                </div>
+                            </div>
+                        </div>
+                    );
+                case 'att1': 
+                    return (
+                        <div key={block.id} className="ml-0 md:ml-12 my-6 bg-red-50/50 dark:bg-red-900/10 border-l-4 border-red-500 rounded-r-sm p-5 flex gap-4 shadow-sm">
+                            <div className="shrink-0 pt-1 text-red-500"><AlertTriangle size={20} /></div>
+                            <div>
+                                <div className={`${zoomClass} text-slate-700 dark:text-slate-300 leading-relaxed font-poppins font-medium`}>
                                     <RichText text={processedContent} />
                                 </div>
                             </div>
@@ -1034,7 +1060,6 @@
       };
 
       const ClassFeedbackForm = ({ professor, initialClassId, initialStartTime, initialStudent, initialVerdict, initialComments, initialScore, addToast }) => {
-        // ... (Same as previous)
         const [selectedType, setSelectedType] = useState(CLASS_TYPES_FEEDBACK[0]); 
         const [isAdminActivity, setIsAdminActivity] = useState(false); 
         const [students, setStudents] = useState(''); 
@@ -1192,18 +1217,18 @@
                 <h2 className="text-4xl font-condensed font-bold text-slate-900 dark:text-white uppercase italic tracking-tight">
                     Formulário de Postagem
                 </h2>
-                <p className="text-slate-500 text-base font-medium">Preenchimento de informações sobre a aula.</p>
+                <p className="text-slate-500 text-base font-medium">Preenchimento obrigatório para homologação.</p>
             </div>
 
             <div className="flex flex-col gap-10">
                 <div className="bg-white dark:bg-[#121813] border border-slate-200 dark:border-white/5 rounded-lg p-8 shadow-sm">
                     <h3 className="text-sm font-bold uppercase tracking-widest text-brand mb-6 flex items-center gap-2">
-                        <LayoutDashboard size={16} /> Dados
+                        <LayoutDashboard size={16} /> Dados da Instrução
                     </h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
                         <div className="space-y-3">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block">Aula/Curso</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block">Modalidade</label>
                             <div className="relative">
                                 <select value={selectedType.id} onChange={(e) => { 
                                     const source = CLASS_TYPES_FEEDBACK;
@@ -1243,7 +1268,7 @@
                     </div>
 
                     <div className="space-y-3">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block">Nickname do Aluno (use " / " caso tenha mais de um)</label>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block">Lista de Cadetes (Separados por barra /)</label>
                         <div className="relative">
                             <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                             <input type="text" value={students} onChange={(e) => setStudents(e.target.value)} className="w-full h-14 pl-12 pr-4 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-md text-sm font-bold text-slate-700 dark:text-white focus:border-brand outline-none transition-all uppercase placeholder-slate-400" placeholder="Ex: Nick1 / Nick2 / Nick3" />
@@ -1255,7 +1280,7 @@
                     {studentList.length > 0 && (
                         <div className="flex items-center justify-between">
                             <h3 className="text-xl font-condensed font-bold uppercase text-slate-800 dark:text-white">
-                                Aluno(s) <span className="text-brand ml-2">({studentList.length})</span>
+                                Avaliação Individual <span className="text-brand ml-2">({studentList.length})</span>
                             </h3>
                             <div className="h-px bg-slate-200 dark:bg-white/10 flex-1 ml-6"></div>
                         </div>
@@ -1267,7 +1292,7 @@
                                 <Users size={32} />
                             </div>
                             <h4 className="text-lg font-bold text-slate-500 uppercase tracking-wide">Lista de Alunos Vazia</h4>
-                            <p className="text-slate-400 text-sm mt-1">Antes de enviar, adicione os nicknames no painel acima.</p>
+                            <p className="text-slate-400 text-sm mt-1">Adicione os nicknames no painel acima para iniciar a avaliação.</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1282,7 +1307,7 @@
                                                 <div className={`absolute bottom-0 inset-x-0 h-1 transition-colors ${isApproved ? 'bg-green-500' : isReproved ? 'bg-red-500' : 'bg-slate-300'}`}></div>
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Aluno(a)</p>
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Cadete</p>
                                                 <h4 className="text-xl font-condensed font-bold uppercase text-slate-800 dark:text-white truncate">{student}</h4>
                                             </div>
                                             <div className="flex flex-col items-end">
@@ -1314,7 +1339,7 @@
                                                 <div className="w-2/3">
                                                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-2">Resultado Final</label>
                                                     <div className={`h-10 px-4 flex items-center justify-center rounded-md font-bold uppercase text-[10px] tracking-wide border transition-colors ${isApproved ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400' : isReproved ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400' : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500'}`}>
-                                                            {isApproved ? 'Aprovado' : 'Reprovado'}
+                                                            {isApproved ? 'Aprovado no Módulo' : 'Reprovado no Módulo'}
                                                     </div>
                                                 </div>
                                             </div>
@@ -1345,7 +1370,6 @@
       };
 
       const ClassHistoryList = ({ currentUser }) => {
-        // ... (Same as previous)
         const [history, setHistory] = useState([]); 
         const [loading, setLoading] = useState(true); 
         const [searchTerm, setSearchTerm] = useState(''); 
@@ -1395,7 +1419,7 @@
           <div className="space-y-8 animate-fade-in">
             <div className="flex flex-col gap-2 border-b-2 border-slate-100 dark:border-white/5 pb-4">
                 <h2 className="text-2xl font-condensed font-bold text-slate-900 dark:text-white uppercase italic">Relatório de Aulas</h2>
-                <p className="text-slate-500 text-sm font-medium">Histórico completo de aulas/cursos aplicados.</p>
+                <p className="text-slate-500 text-sm font-medium">Histórico completo de cursos.</p>
             </div>
             
             <div className="flex flex-col md:flex-row gap-4">
@@ -1429,11 +1453,11 @@
                         <thead>
                             <tr className="bg-slate-50 dark:bg-dark-element text-xs uppercase tracking-widest text-brand font-condensed font-bold border-b border-brand/20">
                                 <th className="px-6 py-4 whitespace-nowrap">Data</th>
-                                <th className="px-6 py-4">Aula/Curso</th>
-                                <th className="px-6 py-4">Professor(a)</th>
+                                <th className="px-6 py-4">Módulo</th>
+                                <th className="px-6 py-4">Instrutor</th>
                                 <th className="px-6 py-4">Aluno(s)</th>
                                 <th className="px-6 py-4 text-center">Status</th>
-                                <th className="px-6 py-4 text-center">Nota/Envio de MP</th>
+                                <th className="px-6 py-4 text-center">Nota</th>
                             </tr>
                         </thead>
                         <tbody className="text-sm font-medium">
@@ -1484,7 +1508,6 @@
       };
 
       const CorrectionTool = ({ currentUser, onNavigateToReport, addToast }) => {
-        // ... (Same as previous)
         const [studentNick, setStudentNick] = useState(''); 
         const [bbcodeInput, setBbcodeInput] = useState(''); 
         const [result, setResult] = useState({ approved: false, missing: [], checked: false });
@@ -1714,7 +1737,7 @@
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-2 text-red-500">
                                                 <AlertTriangle size={14} />
-                                                <span className="text-[10px] font-bold uppercase tracking-widest">AUSÊNCIA DE:</span>
+                                                <span className="text-[10px] font-bold uppercase tracking-widest">Violações Detectadas</span>
                                             </div>
                                             <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-500/20 rounded-sm p-3">
                                                 <div className="flex flex-wrap gap-2">
@@ -1783,7 +1806,6 @@
       ];
 
       const MobileMenu = ({ menuItems, currentUser, currentView, navigateTo, onClose }) => {
-          // ... (Same as previous)
           return (
             <div className="fixed inset-0 z-[1000] lg:hidden">
                 <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose}></div>
@@ -2025,9 +2047,34 @@
           setClassStartTime(new Date());
           setContentLoading(true);
           try {
-            const rows = await fetchClassContent(cls.gid);
-            setClassContent(parseRowsToBlocks(rows));
-          } catch (err) { alert('Erro ao carregar.'); } finally { setContentLoading(false); }
+            const [classRows, initRows] = await Promise.all([
+                fetchClassContent(cls.gid),
+                fetchCSV(INIT_PROC_GID)
+            ]);
+            
+            const mainBlocks = parseRowsToBlocks(classRows);
+            
+            const initBlocks = initRows
+                .filter(r => r[0])
+                .map(r => ({
+                    id: generateId(),
+                    type: 'leaf',
+                    tag: 'att1', 
+                    content: r[0], 
+                    extra: ''
+                }));
+
+            if (initBlocks.length > 0) {
+                 initBlocks.unshift({ id: generateId(), type: 'leaf', tag: 'mst', content: 'Procedimentos Iniciais', extra: '' });
+            }
+
+            setClassContent([...initBlocks, ...mainBlocks]);
+          } catch (err) { 
+              console.error(err);
+              alert('Erro ao carregar.'); 
+          } finally { 
+              setContentLoading(false); 
+          }
         };
 
         const handlePostReport = () => { if (selectedClass && classStartTime) { setReportData({ classId: selectedClass.id, startTime: classStartTime }); setCurrentView('reports'); setSelectedClass(null); } };
@@ -2071,12 +2118,12 @@
                             </div>
                             <div className="flex flex-col space-y-1">
                                 <span className="font-condensed font-bold text-white uppercase tracking-widest text-sm leading-none">Centro de Formação de Oficiais</span>
-                                <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-mono">A MELHOR SUBCOMPANHIA • RCC</span>
+                                <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-mono">Polícia Militar Revolução • Est. 2026</span>
                             </div>
                         </div>
                         
                         <div className="flex items-center gap-6">
-                            <span className="text-[10px] text-white/30 font-mono">© {new Date().getFullYear()} DIREITOS RESERVADOS AO CENTRO DE FORMAÇÃO DE OFICIAIS</span>
+                            <span className="text-[10px] text-white/30 font-mono">© {new Date().getFullYear()} DIREITOS RESERVADOS</span>
                             <span className="text-brand font-bold uppercase tracking-widest text-[10px] hidden md:inline">DESENVOLVIDO POR .BRENDON</span>
                         </div>
                   </div>
@@ -2088,8 +2135,8 @@
              return {
                 card1: {
                     id: 'classes',
-                    title: 'Scripts',
-                    desc: 'Clique aqui para acessar',
+                    title: 'Aulas e Scripts',
+                    desc: 'Acesse os módulos de ensino e scripts atualizados. Nossa metodologia foca na formação de líderes preparados para o alto comando.',
                     iconImg: 'https://i.imgur.com/N03iLnL.png',
                     iconLucide: null,
                     color: 'bg-brand',
@@ -2099,7 +2146,7 @@
                 card2: {
                     id: 'manual_prof',
                     title: 'Manual do Professor',
-                    desc: 'Normas e prazos de aplicação.',
+                    desc: 'Diretrizes operacionais, regras de conduta e normas de aplicação.',
                     iconImg: 'https://i.imgur.com/85pC8ek.png',
                     iconLucide: null,
                     color: 'bg-slate-400',
@@ -2115,7 +2162,7 @@
 
         return (
           <div className="flex flex-col min-h-screen w-full font-sans text-slate-800 dark:text-slate-200">
-            {showWarning && <Toast message="Pulo de linhas detectado!" onClose={() => setShowWarning(false)} />}
+            {showWarning && <Toast message="Pulo de linhas detectado! Mantenha a ordem do script." onClose={() => setShowWarning(false)} />}
             
             <ToastContainer toasts={toasts} removeToast={removeToast} />
 
