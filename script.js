@@ -45,7 +45,7 @@
       );
 
       const CustomHTrophyIcon = ({ size = 24, className = "" }) => (
-        <img src="https://i.imgur.com/CixKK4I.png" alt="Histórico" style={{ width: size, height: size, objectFit: 'contain' }} className={className} />
+        <img src="https://i.imgur.com/poHdvN7.png" alt="Troféu" style={{ width: size, height: size, objectFit: 'contain' }} className={className} />
       );
       
       const CustomCorrectionIcon = ({ size = 24, className = "" }) => (
