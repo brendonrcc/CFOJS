@@ -105,7 +105,7 @@
       const SLIDESHOW_GID = "661060277";
       const NOTICES_GID = "1523373356";
       const INIT_PROC_GID = "182309842";
-      const LOGO_URL = "https://i.imgur.com/ScdmxL5.png";
+      const LOGO_URL = "https://i.imgur.com/7Q1KoaM.png";
 
       const CLASSES = [
         { id: 'admin', name: 'Administração e Tecnologia do Fórum', gid: '0', description: 'Script da matéria Administração e Tecnologia do Fórum', icon: 'https://i.imgur.com/x8lj35t.png' },
